@@ -13,6 +13,7 @@ def add_documents(
     collection_name: str,
     documents: list[str],
     embeddings,
+    metadatas: list[dict] | None = None,
 ) -> chromadb.Collection:
     """
     Store documents and their embeddings in a ChromaDB collection.
@@ -25,6 +26,7 @@ def add_documents(
         ids=ids,
         documents=documents,
         embeddings=embeddings.tolist() if hasattr(embeddings, "tolist") else embeddings,
+        metadatas=metadatas,
     )
 
     return collection
