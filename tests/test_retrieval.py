@@ -29,3 +29,35 @@ def test_retrieve_documents_returns_most_similar_document():
     )
 
     assert result == ["machine learning"]
+
+
+from src.scientific_rag.rag_pipeline import retrieve_context
+from src.scientific_rag.embeddings import load_embedding_model
+
+
+def test_retrieve_context_returns_relevant_documents():
+    client = create_chroma_client()
+
+    documents = [
+        "machine learning",
+        "scientific retrieval",
+    ]
+
+    model = load_embedding_model()
+    embeddings = model.encode(documents)
+
+    collection = add_documents(
+        client=client,
+        collection_name="context_test",
+        documents=documents,
+        embeddings=embeddings,
+    )
+
+    results = retrieve_context(
+        question="scientific retrieval",
+        collection=collection,
+        model=model,
+        n_results=1,
+    )
+
+    assert results == ["scientific retrieval"]

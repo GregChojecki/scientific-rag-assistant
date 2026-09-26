@@ -4,6 +4,7 @@ from .chunking import chunk_text
 from .embeddings import embed_texts, load_embedding_model
 from .ingestion import extract_text_from_pdf
 from .vector_store import add_documents, create_chroma_client
+from .retrieval import retrieve_documents
 
 
 def build_retrieval_collection(pdf_path: str | Path):
@@ -26,3 +27,22 @@ def build_retrieval_collection(pdf_path: str | Path):
     )
 
     return collection, model
+
+
+
+def retrieve_context(
+    question: str,
+    collection,
+    model,
+    n_results: int = 3,
+) -> list[str]:
+    """
+    Embed a question and retrieve the most relevant document chunks.
+    """
+    query_embedding = embed_texts([question], model)[0]
+
+    return retrieve_documents(
+        collection=collection,
+        query_embedding=query_embedding,
+        n_results=n_results,
+    )
