@@ -5,6 +5,7 @@ from .embeddings import embed_texts, load_embedding_model
 from .ingestion import extract_text_from_pdf
 from .vector_store import add_documents, create_chroma_client
 from .retrieval import retrieve_documents
+from .generation import generate_answer
 
 
 def build_retrieval_collection(pdf_path: str | Path):
@@ -45,4 +46,26 @@ def retrieve_context(
         collection=collection,
         query_embedding=query_embedding,
         n_results=n_results,
+    )
+
+
+def answer_question(
+    question: str,
+    collection,
+    model,
+    n_results: int = 3,
+) -> str:
+    """
+    Retrieve relevant context and generate a grounded answer.
+    """
+    context_chunks = retrieve_context(
+        question=question,
+        collection=collection,
+        model=model,
+        n_results=n_results,
+    )
+
+    return generate_answer(
+        question=question,
+        context_chunks=context_chunks,
     )
