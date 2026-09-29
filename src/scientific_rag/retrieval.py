@@ -4,7 +4,7 @@ def retrieve_documents(
     n_results: int = 3,
 ):
     """
-    Retrieve the most similar documents from a ChromaDB collection.
+    Retrieve the most similar documents and metadata from a ChromaDB collection.
     """
     result = collection.query(
         query_embeddings=[
@@ -13,6 +13,12 @@ def retrieve_documents(
             else query_embedding
         ],
         n_results=n_results,
+        include=["documents", "metadatas"],
     )
 
-    return result["documents"][0]
+    return list(
+        zip(
+            result["documents"][0],
+            result["metadatas"][0],
+        )
+    )

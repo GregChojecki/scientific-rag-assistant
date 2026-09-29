@@ -28,7 +28,7 @@ def test_retrieve_documents_returns_most_similar_document():
         n_results=1,
     )
 
-    assert result == ["machine learning"]
+    assert result == [("machine learning", None)]
 
 
 from src.scientific_rag.rag_pipeline import retrieve_context
@@ -60,4 +60,9 @@ def test_retrieve_context_returns_relevant_documents():
         n_results=1,
     )
 
-    assert results == ["scientific retrieval"]
+    assert results == [
+    {
+        "text": "scientific retrieval",
+        "metadata": None,
+    }
+    ]

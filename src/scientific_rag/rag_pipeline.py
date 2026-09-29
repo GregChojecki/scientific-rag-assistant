@@ -2,10 +2,10 @@ from pathlib import Path
 
 from .chunking import chunk_text
 from .embeddings import embed_texts, load_embedding_model
-from .ingestion import extract_text_from_pdf
-from .vector_store import add_documents, create_chroma_client
-from .retrieval import retrieve_documents
 from .generation import generate_answer
+from .ingestion import extract_text_from_pdf
+from .retrieval import retrieve_documents
+from .vector_store import add_documents, create_chroma_client
 
 
 def build_retrieval_collection(pdf_path: str | Path):
@@ -14,6 +14,14 @@ def build_retrieval_collection(pdf_path: str | Path):
     """
     text = extract_text_from_pdf(pdf_path)
     chunks = chunk_text(text)
+
+    metadatas = [
+        {
+            "source": Path(pdf_path).name,
+            "chunk_id": i,
+        }
+        for i in range(len(chunks))
+    ]
 
     model = load_embedding_model()
     embeddings = embed_texts(chunks, model)
@@ -25,10 +33,10 @@ def build_retrieval_collection(pdf_path: str | Path):
         collection_name="scientific_documents",
         documents=chunks,
         embeddings=embeddings,
+        metadatas=metadatas,
     )
 
     return collection, model
-
 
 
 def retrieve_context(
@@ -36,17 +44,25 @@ def retrieve_context(
     collection,
     model,
     n_results: int = 3,
-) -> list[str]:
+):
     """
-    Embed a question and retrieve the most relevant document chunks.
+    Embed a question and retrieve relevant chunks with metadata.
     """
     query_embedding = embed_texts([question], model)[0]
 
-    return retrieve_documents(
+    results = retrieve_documents(
         collection=collection,
         query_embedding=query_embedding,
         n_results=n_results,
     )
+
+    return [
+        {
+            "text": document,
+            "metadata": metadata,
+        }
+        for document, metadata in results
+    ]
 
 
 def answer_question(
@@ -58,7 +74,7 @@ def answer_question(
     """
     Retrieve relevant context and generate a grounded answer.
     """
-    context_chunks = retrieve_context(
+    retrieved_context = retrieve_context(
         question=question,
         collection=collection,
         model=model,
@@ -67,5 +83,5 @@ def answer_question(
 
     return generate_answer(
         question=question,
-        context_chunks=context_chunks,
+        context_chunks=[item["text"] for item in retrieved_context],
     )
